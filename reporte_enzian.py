@@ -1662,7 +1662,7 @@ with tabs[8]:
         
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.add_run('Médico Radiólogo')
+        p.add_run('Médico Ginecólogo')
         
         # Guardar en memoria
         buffer = io.BytesIO()
