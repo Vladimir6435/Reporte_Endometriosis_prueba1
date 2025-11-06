@@ -4,10 +4,11 @@ from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import io
+import json
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Reporte Ultrasonido Endometriosis #Enzian Asociación Costarricense de Ginecología",
+    page_title="Reporte Ultrasonido Endometriosis #Enzian",
     page_icon="🏥",
     layout="wide"
 )
@@ -31,11 +32,138 @@ st.markdown("""
         border-left: 4px solid #667eea;
         margin: 1rem 0;
     }
+    .stButton>button {
+        transition: all 0.3s ease;
+    }
+    .stButton>button:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
     </style>
 """, unsafe_allow_html=True)
 
 # Título principal
 st.markdown('<h1 class="main-header">📊 Sistema de Reporte Ultrasonográfico de Endometriosis<br>Clasificación #Enzian</h1>', unsafe_allow_html=True)
+
+# Barra superior con botones
+col1, col2, col3 = st.columns([5, 1, 1])
+with col2:
+    if st.button("🆕 Nuevo Reporte", key="btn_nuevo_sup", help="Iniciar un nuevo reporte desde cero"):
+        st.session_state['mostrar_confirmacion'] = True
+
+with col3:
+    if st.button("ℹ️ Ayuda", key="btn_ayuda", help="Ver guía de uso"):
+        st.session_state['mostrar_ayuda'] = True
+
+# Modal de confirmación para nuevo reporte
+if st.session_state.get('mostrar_confirmacion', False):
+    st.markdown("---")
+    st.warning("### ⚠️ Confirmación Requerida")
+    st.write("¿Deseas iniciar un nuevo reporte? **Se perderán todos los datos actuales no guardados.**")
+    
+    col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 2])
+    with col1:
+        if st.button("✅ Sí, continuar", type="primary", key="confirmar_nuevo"):
+            # Limpiar todos los datos excepto las confirmaciones
+            keys_to_keep = ['mostrar_confirmacion', 'mostrar_ayuda']
+            for key in list(st.session_state.keys()):
+                if key not in keys_to_keep:
+                    del st.session_state[key]
+            st.session_state['mostrar_confirmacion'] = False
+            st.rerun()
+    with col2:
+        if st.button("❌ Cancelar", key="cancelar_nuevo"):
+            st.session_state['mostrar_confirmacion'] = False
+            st.rerun()
+    st.markdown("---")
+
+# Modal de ayuda
+if st.session_state.get('mostrar_ayuda', False):
+    with st.expander("📖 **Guía Completa de Uso del Sistema**", expanded=True):
+        st.markdown("""
+        ### 🎯 Cómo usar este sistema:
+        
+        **Pasos para crear un reporte:**
+        
+        1. 📋 **Complete los datos del paciente** en la primera pestaña (obligatorio)
+        2. 🔍 **Evalúe cada compartimento** según hallazgos ultrasonográficos
+        3. 📏 **Ingrese mediciones precisas** - el sistema sugerirá clasificaciones automáticamente
+        4. ⚠️ **Revise las alertas** de inconsistencias entre medidas y clasificación manual
+        5. 📊 **Genere el reporte** en la última pestaña
+        6. 💾 **Descargue el documento Word** profesional generado
+        7. 🔄 **Inicie un nuevo reporte** cuando termine
+        
+        ---
+        
+        ### 📚 Clasificación #Enzian - Componentes:
+        
+        | Código | Descripción | Medición |
+        |--------|-------------|----------|
+        | **P** | Peritoneo superficial | Suma de diámetros |
+        | **O** | Ovarios (endometriomas) | Diámetro máximo |
+        | **T** | Adherencias tubo-ováricas | Evaluación de movilidad |
+        | **A** | Vagina/espacio rectovaginal | Diámetro en plano sagital |
+        | **B** | Ligamentos uterosacros | Diámetro máximo + 3D |
+        | **C** | Recto (hasta 16cm) | Longitud de lesión |
+        | **FA** | Adenomiosis | Criterios MUSA |
+        | **FB** | Vejiga | Localización + profundidad |
+        | **FU** | Uréter | Dilatación ≥6mm |
+        | **FI** | Intestino (>16cm) | Localización específica |
+        | **F(...)** | Otras localizaciones | Descripción libre |
+        
+        ---
+        
+        ### 💡 Funciones Especiales:
+        
+        - **Validación automática**: El sistema compara mediciones con clasificaciones
+        - **Sugerencias inteligentes**: Clasificación automática según medidas
+        - **Criterios IOTA**: Para descripción detallada de endometriomas
+        - **Sliding sign**: Evaluación de movilidad y adherencias
+        - **Alertas clínicas**: Identificación de hallazgos críticos
+        - **Guardar borrador**: Guarde su progreso en formato JSON
+        - **Cargar borrador**: Continue un reporte guardado previamente
+        
+        ---
+        
+        ### 🎨 Rangos de Clasificación:
+        
+        **Para Compartimentos A, B, C:**
+        - Grado 1: < 1 cm
+        - Grado 2: 1-3 cm
+        - Grado 3: > 3 cm
+        
+        **Para Ovarios (O):**
+        - O1: < 3 cm
+        - O2: 3-7 cm
+        - O3: > 7 cm
+        
+        **Para Peritoneo (P):**
+        - P1: < 3 cm (suma)
+        - P2: 3-7 cm (suma)
+        - P3: > 7 cm (suma)
+        
+        ---
+        
+        ### ⚙️ Atajos de Teclado:
+        
+        - `Ctrl + S`: Guardar progreso actual
+        - `Ctrl + R`: Recargar aplicación
+        - `Tab`: Navegar entre campos
+        
+        ---
+        
+        ### 📞 Soporte:
+        
+        Para dudas sobre la clasificación #Enzian, consulte:
+        - Keckstein et al. (2021) - Acta Obstet Gynecol Scand
+        - International Deep Endometriosis Analysis (IDEA) Group
+        """)
+        
+        if st.button("✖️ Cerrar ayuda", key="cerrar_ayuda"):
+            st.session_state['mostrar_ayuda'] = False
+            st.rerun()
+
+st.markdown("---")
 
 # Inicializar session state
 if 'data' not in st.session_state:
@@ -77,6 +205,27 @@ def validar_consistencia(compartimento, medida, clasificacion_manual):
             return False, f"⚠️ Inconsistencia: La medida {medida}cm sugiere clasificación {clasificacion_calculada}, pero seleccionaste {clasificacion_manual}"
     return True, ""
 
+# Funciones para guardar y cargar borradores
+def guardar_borrador():
+    """Guarda el estado actual como JSON"""
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    nombre_paciente = st.session_state.data['paciente'].get('nombre', 'Paciente').replace(' ', '_')
+    nombre_archivo = f"Borrador_{nombre_paciente}_{timestamp}.json"
+    
+    # Convertir datos a JSON
+    data_json = json.dumps(st.session_state.data, indent=2, default=str)
+    
+    return data_json.encode(), nombre_archivo
+
+def cargar_borrador(uploaded_file):
+    """Carga un borrador desde archivo JSON"""
+    try:
+        data_cargada = json.loads(uploaded_file.read())
+        st.session_state.data = data_cargada
+        return True, "✅ Borrador cargado exitosamente"
+    except Exception as e:
+        return False, f"❌ Error al cargar borrador: {str(e)}"
+
 # Pestañas principales
 tabs = st.tabs([
     "👤 Datos del Paciente",
@@ -97,14 +246,14 @@ with tabs[0]:
     col1, col2 = st.columns(2)
     
     with col1:
-        nombre = st.text_input("Nombre completo", key="nombre_paciente")
-        edad = st.number_input("Edad", min_value=0, max_value=120, key="edad_paciente")
-        cedula = st.text_input("Número de identificación", key="cedula_paciente")
+        nombre = st.text_input("Nombre completo *", key="nombre_paciente", help="Campo obligatorio")
+        edad = st.number_input("Edad *", min_value=0, max_value=120, key="edad_paciente", help="Campo obligatorio")
+        cedula = st.text_input("Número de identificación *", key="cedula_paciente", help="Campo obligatorio")
         
     with col2:
-        fecha_estudio = st.date_input("Fecha del estudio", datetime.now())
+        fecha_estudio = st.date_input("Fecha del estudio *", datetime.now(), help="Campo obligatorio")
         medico = st.text_input("Médico solicitante", key="medico_solicitante")
-        indicacion = st.text_area("Indicación del estudio", key="indicacion_estudio")
+        indicacion = st.text_area("Indicación del estudio", key="indicacion_estudio", help="Motivo del estudio ultrasonográfico")
     
     st.session_state.data['paciente'] = {
         'nombre': nombre,
@@ -114,6 +263,12 @@ with tabs[0]:
         'medico': medico,
         'indicacion': indicacion
     }
+    
+    # Indicador visual de campos completos
+    if nombre and cedula and edad:
+        st.success("✅ Datos básicos completos")
+    else:
+        st.info("ℹ️ Complete los campos marcados con * para continuar")
 
 # ============= PESTAÑA 2: PERITONEO (P) =============
 with tabs[1]:
@@ -155,7 +310,8 @@ with tabs[1]:
         
         descripcion_p = st.text_area(
             "Descripción adicional:",
-            key="descripcion_peritoneo"
+            key="descripcion_peritoneo",
+            help="Describa características adicionales de las lesiones peritoneales"
         )
         
         st.session_state.data['peritoneo'] = {
@@ -1064,7 +1220,7 @@ with tabs[8]:
         # Peritoneo (P)
         if st.session_state.data['peritoneo'].get('estado') == 'anormal':
             clasificacion = st.session_state.data['peritoneo'].get('clasificacion', 'P1')
-            componentes.append(clasificacion.split()[0])  # Extrae "P1", "P2", o "P3"
+            componentes.append(clasificacion.split()[0])
         
         # Ovarios (O)
         ovario_izq = st.session_state.data['ovarios']['izquierdo']
@@ -1075,7 +1231,7 @@ with tabs[8]:
             clase_der = "0"
             
             if ovario_izq.get('estado') == 'anormal':
-                clase_izq = ovario_izq.get('clasificacion', 'O1')[1]  # Extrae el número
+                clase_izq = ovario_izq.get('clasificacion', 'O1')[1]
             elif ovario_izq.get('estado') == 'no_visualizado':
                 clase_izq = "x"
                 
@@ -1096,7 +1252,7 @@ with tabs[8]:
             
             if tubo_izq.get('estado') == 'anormal':
                 clase_texto = tubo_izq.get('clasificacion', 'T1')
-                clase_izq = clase_texto[1]  # Extrae el número
+                clase_izq = clase_texto[1]
                 
             if tubo_der.get('estado') == 'anormal':
                 clase_texto = tubo_der.get('clasificacion', 'T1')
@@ -1177,7 +1333,7 @@ with tabs[8]:
         header = doc.add_heading('REPORTE ULTRASONOGRÁFICO', 0)
         header.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
-        subheader = doc.add_heading('Evaluación de Endometriosis Asociación Costarricense de Ginecologia - Clasificación #Enzian', level=2)
+        subheader = doc.add_heading('Evaluación de Endometriosis - Clasificación #Enzian', level=2)
         subheader.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         doc.add_paragraph()
@@ -1506,7 +1662,7 @@ with tabs[8]:
         
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.add_run('Médico Ginecólogo')
+        p.add_run('Médico Radiólogo')
         
         # Guardar en memoria
         buffer = io.BytesIO()
@@ -1514,6 +1670,45 @@ with tabs[8]:
         buffer.seek(0)
         
         return buffer
+    
+    # Sección de guardar/cargar borradores
+    st.markdown("### 💾 Gestión de Borradores")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### Guardar Borrador")
+        if st.button("💾 Guardar Borrador Actual (JSON)", use_container_width=True, type="secondary"):
+            data_json, nombre = guardar_borrador()
+            st.download_button(
+                label="⬇️ Descargar Borrador JSON",
+                data=data_json,
+                file_name=nombre,
+                mime="application/json",
+                use_container_width=True,
+                key="download_borrador"
+            )
+            st.success("✅ Borrador preparado para descarga")
+    
+    with col2:
+        st.markdown("#### Cargar Borrador")
+        uploaded_file = st.file_uploader(
+            "📁 Seleccione archivo JSON",
+            type=['json'],
+            key="cargar_borrador",
+            help="Cargue un borrador guardado previamente"
+        )
+        
+        if uploaded_file:
+            exito, mensaje = cargar_borrador(uploaded_file)
+            if exito:
+                st.success(mensaje)
+                if st.button("🔄 Actualizar Vista", key="actualizar_borrador"):
+                    st.rerun()
+            else:
+                st.error(mensaje)
+    
+    st.markdown("---")
     
     # Vista previa del reporte
     st.markdown("### 📊 Vista Previa del Código #Enzian")
@@ -1534,20 +1729,28 @@ with tabs[8]:
     
     campos_obligatorios = []
     
-    if not st.session_state.data['paciente'].get('nombre'):
-        campos_obligatorios.append("❌ Nombre del paciente")
-    else:
-        st.success("✅ Nombre del paciente")
+    col1, col2, col3 = st.columns(3)
     
-    if not st.session_state.data['paciente'].get('cedula'):
-        campos_obligatorios.append("❌ Número de identificación")
-    else:
-        st.success("✅ Número de identificación")
+    with col1:
+        if not st.session_state.data['paciente'].get('nombre'):
+            st.error("❌ Nombre del paciente")
+            campos_obligatorios.append("Nombre del paciente")
+        else:
+            st.success("✅ Nombre del paciente")
     
-    if not st.session_state.data['paciente'].get('fecha'):
-        campos_obligatorios.append("❌ Fecha del estudio")
-    else:
-        st.success("✅ Fecha del estudio")
+    with col2:
+        if not st.session_state.data['paciente'].get('cedula'):
+            st.error("❌ Número de identificación")
+            campos_obligatorios.append("Número de identificación")
+        else:
+            st.success("✅ Número de identificación")
+    
+    with col3:
+        if not st.session_state.data['paciente'].get('fecha'):
+            st.error("❌ Fecha del estudio")
+            campos_obligatorios.append("Fecha del estudio")
+        else:
+            st.success("✅ Fecha del estudio")
     
     # Verificar que al menos un compartimento tenga datos
     tiene_hallazgos = False
@@ -1581,23 +1784,56 @@ with tabs[8]:
         if campos_obligatorios:
             st.error("⚠️ Completa los campos obligatorios antes de generar el reporte:")
             for campo in campos_obligatorios:
-                st.write(campo)
+                st.write(f"• {campo}")
         else:
-            if st.button("📄 GENERAR REPORTE EN WORD", type="primary", use_container_width=True):
-                with st.spinner('Generando reporte...'):
+            if st.button("📄 GENERAR REPORTE EN WORD", type="primary", use_container_width=True, key="btn_generar_reporte"):
+                with st.spinner('⏳ Generando reporte profesional...'):
                     buffer = generar_reporte_word()
                     
-                    nombre_archivo = f"Reporte_Endometriosis_{st.session_state.data['paciente']['nombre'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.docx"
+                    nombre_archivo = f"Reporte_Endometriosis_{st.session_state.data['paciente']['nombre'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M')}.docx"
                     
                     st.success("✅ ¡Reporte generado exitosamente!")
                     
                     st.download_button(
-                        label="⬇️ DESCARGAR REPORTE",
+                        label="⬇️ DESCARGAR REPORTE WORD",
                         data=buffer,
                         file_name=nombre_archivo,
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        use_container_width=True
+                        use_container_width=True,
+                        key="download_reporte"
                     )
+                    
+                    st.session_state['reporte_generado'] = True
+    
+    # Sección de nuevo reporte después de generar
+    if st.session_state.get('reporte_generado', False):
+        st.markdown("---")
+        
+        st.success("### ✅ Reporte Completado")
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.info("💡 **Puedes:**\n- Descargar el reporte nuevamente usando el botón de arriba\n- Guardar un borrador antes de crear uno nuevo\n- Iniciar un nuevo reporte desde cero")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            if st.button("🆕 CREAR NUEVO REPORTE", type="primary", use_container_width=True, key="nuevo_reporte_final"):
+                st.session_state['confirmar_nuevo_final'] = True
+        
+        # Confirmación antes de crear nuevo reporte
+        if st.session_state.get('confirmar_nuevo_final', False):
+            st.warning("⚠️ ¿Estás seguro de crear un nuevo reporte? Se perderán los datos actuales si no los has guardado.")
+            
+            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+            with col1:
+                if st.button("✅ Sí, crear nuevo", type="primary", key="confirmar_nuevo_si"):
+                    for key in list(st.session_state.keys()):
+                        del st.session_state[key]
+                    st.rerun()
+            with col2:
+                if st.button("❌ Cancelar", key="confirmar_nuevo_no"):
+                    st.session_state['confirmar_nuevo_final'] = False
+                    st.rerun()
     
     st.markdown("---")
     
@@ -1712,6 +1948,12 @@ with tabs[8]:
         if st.session_state.data['compartimento_a'].get('clasificacion') in ['A3 (>3 cm)', 'A3']:
             alertas.append("⚠️ Endometriosis profunda extensa (A3)")
         
+        # Alerta por compromiso intestinal múltiple
+        if loc_f.get('intestino', {}).get('presente'):
+            locs = loc_f['intestino'].get('localizaciones', [])
+            if len(locs) > 1:
+                alertas.append("⚠️ Compromiso intestinal múltiple")
+        
         if alertas:
             for alerta in alertas:
                 st.warning(alerta)
@@ -1723,7 +1965,8 @@ st.markdown("---")
 st.markdown("""
     <div style="text-align: center; color: #666; padding: 20px;">
         <p><strong>Sistema de Reporte Ultrasonográfico de Endometriosis</strong></p>
-        <p>Clasificación #Enzian - Versión 2021</p>
+        <p>Clasificación #Enzian - Versión 2021 (Keckstein et al.)</p>
         <p style="font-size: 0.9em;">Desarrollado para evaluación sistemática de endometriosis mediante ultrasonido transvaginal</p>
+        <p style="font-size: 0.8em; color: #999;">Versión 1.0.0 | © 2025</p>
     </div>
 """, unsafe_allow_html=True)
