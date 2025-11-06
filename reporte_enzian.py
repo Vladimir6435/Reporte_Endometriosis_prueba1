@@ -7,7 +7,7 @@ import io
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Reporte Ultrasonido Endometriosis #Enzian",
+    page_title="Reporte Ultrasonido Endometriosis #Enzian Asociación Costarricense de Ginecología",
     page_icon="🏥",
     layout="wide"
 )
@@ -1177,7 +1177,7 @@ with tabs[8]:
         header = doc.add_heading('REPORTE ULTRASONOGRÁFICO', 0)
         header.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
-        subheader = doc.add_heading('Evaluación de Endometriosis - Clasificación #Enzian', level=2)
+        subheader = doc.add_heading('Evaluación de Endometriosis Asociación Costarricense de Ginecologia - Clasificación #Enzian', level=2)
         subheader.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         doc.add_paragraph()
@@ -1506,7 +1506,7 @@ with tabs[8]:
         
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.add_run('Médico Radiólogo')
+        p.add_run('Médico Ginecólogo')
         
         # Guardar en memoria
         buffer = io.BytesIO()
