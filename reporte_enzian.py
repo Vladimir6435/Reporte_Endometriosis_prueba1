@@ -8,7 +8,7 @@ import json
 
 # Configuración de la página
 st.set_page_config(
-    page_title="Reporte Ultrasonido Endometriosis #Enzian",
+    page_title="Reporte Ultrasonido Endometriosis #Enzian Asociación Costarricense de Ginecología",
     page_icon="🏥",
     layout="wide"
 )
@@ -1330,7 +1330,7 @@ with tabs[8]:
         style.font.size = Pt(11)
         
         # Encabezado
-        header = doc.add_heading('REPORTE ULTRASONOGRÁFICO', 0)
+        header = doc.add_heading('REPORTE ULTRASONOGRÁFICO ASOCIACIÓN COSTARRICENSE GINECOLOGIA', 0)
         header.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         subheader = doc.add_heading('Evaluación de Endometriosis - Clasificación #Enzian', level=2)
@@ -1966,7 +1966,7 @@ st.markdown("""
     <div style="text-align: center; color: #666; padding: 20px;">
         <p><strong>Sistema de Reporte Ultrasonográfico de Endometriosis</strong></p>
         <p>Clasificación #Enzian - Versión 2021 (Keckstein et al.)</p>
-        <p style="font-size: 0.9em;">Desarrollado para evaluación sistemática de endometriosis mediante ultrasonido transvaginal</p>
+        <p style="font-size: 0.9em;">Desarrollado por VECTOR-AI CR para evaluación sistemática de endometriosis mediante ultrasonido transvaginal</p>
         <p style="font-size: 0.8em; color: #999;">Versión 1.0.0 | © 2025</p>
     </div>
 """, unsafe_allow_html=True)
